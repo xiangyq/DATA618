@@ -19,7 +19,7 @@ def initialize(context):
     """
     Called once at the start of the algorithm.
     """
-    # create the list of paired securities with information
+    # create the list of paired securities with informations
     context.s1 = sid(700)
     context.s2 = sid(1335)
     context.pair= [context.s1, context.s2, False, 1, 1]
@@ -33,20 +33,20 @@ def my_record_vars(context, data):
     """
     Plot variables at the end of each day.
     """
-    data1 = data.history(context.pair[0], 'close', 30, '1d')
-    data2 = data.history(context.pair[1], 'close', 30, '1d')
+    data1 = data.history(context.pair[0], 'close', 15, '1d')
+    data2 = data.history(context.pair[1], 'close', 15, '1d')
     data1_s = not_stationary(data1)
     data2_s = not_stationary(data2)
         
     if(data1_s and data2_s):
             
         p_coint = coint(data1, data2)[1]
-        if(p_coint < 0.05):
+        if(p_coint < 0.1):
             diff = data1 - data2
-            ave = diff.mean()
+            mu = diff.mean()
             sd = diff.std()
             context.pair[2] = True
-            context.pair[3] = ave
+            context.pair[3] = mu
             context.pair[4] = sd
 
 def not_stationary(data, cutoff=0.05):
@@ -66,11 +66,11 @@ def handle_data(context,data):
         p1 = data.current(context.pair[0], 'price')
         p2 = data.current(context.pair[1], 'price')
         diff = p1 - p2
-        if diff > (context.pair[3] + context.pair[4]):
+        if diff > (context.pair[3] + 1.5*context.pair[4]):
             if data.can_trade(context.s1) and data.can_trade(context.s2):
                 order(context.s1, Volume)
                 order(context.s2, -Volume)
-        elif diff < (context.pair[3] - context.pair[4]):
+        elif diff < (context.pair[3] - 1.5*context.pair[4]):
             if data.can_trade(context.s1) and data.can_trade(context.s2):
                 order(context.s1, -Volume)
                 order(context.s2, +Volume)
